@@ -2,11 +2,14 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using MollyTalkProject.Controllers.RequestModels;
 using MollyTalkProject.Controllers.SetModels;
+using MollyTalkProject.Models;
 using MollyTalkProject.Models.Entities;
+using Newtonsoft.Json;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -19,11 +22,13 @@ namespace MollyTalkProject.Controllers.Login
     {
         private readonly UserManager<User> userManager;
         private readonly RoleManager<Role> roleManager;
+        public readonly MollyDBContext dBContext;
 
-        public LoginController(UserManager<User> userManager, RoleManager<Role> roleManager)
+        public LoginController(UserManager<User> userManager, RoleManager<Role> roleManager, MollyDBContext dBContext)
         {
             this.userManager = userManager;
             this.roleManager = roleManager;
+            this.dBContext = dBContext;
         }
 
 
@@ -36,7 +41,18 @@ namespace MollyTalkProject.Controllers.Login
                 return BadRequest("Failed");
             }
             var code = wXCode.Code;
-            var openID = GetOpenIDByWXCode(code);
+            var response = await GetOpenIDByWXCodeAsync(code);
+            if (!response.IsSuccessStatusCode)
+            {
+                return Problem("网络错误！");
+            }
+            string responseBody = await response.Content.ReadAsStringAsync();
+            var responseObj = JsonConvert.DeserializeObject <WXHttpClientResponse>(responseBody);
+            string openID = responseObj.openid;
+            if (string.IsNullOrEmpty(openID))
+            {
+                return BadRequest(responseObj);
+            }
             //用openID 用作UserName查询用户是否已经存在
             var user = await userManager.FindByNameAsync(openID);
             if (user==null)
@@ -48,6 +64,10 @@ namespace MollyTalkProject.Controllers.Login
             {
                 return BadRequest("Failed");
             }
+            //返回历史聊天记录
+            var returnObj =  dBContext.ChatMessages.Where(c => c.UserId == user.Id).OrderByDescending(c=>c.Id).Take(30).ToList();
+
+            //生成Token
             var claims = new List<Claim>();
             claims.Add(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
             claims.Add(new Claim(ClaimTypes.Name, user.UserName));
@@ -62,7 +82,12 @@ namespace MollyTalkProject.Controllers.Login
             {
                 return BadRequest("Failed");
             }
-            return Ok(jwtToken);
+            ChatMsgRecord msgRecord = new ChatMsgRecord() 
+            { 
+                Token = jwtToken,
+                ChatMessages = returnObj
+            };
+            return Ok(msgRecord);
         }
 
         private string BuildToken(IEnumerable<Claim> claims)
@@ -109,9 +134,35 @@ namespace MollyTalkProject.Controllers.Login
             return user;
         }
 
-        private string GetOpenIDByWXCode(string code)
+        private async Task<HttpResponseMessage> GetOpenIDByWXCodeAsync(string code)
         {
-            throw new NotImplementedException();
+            string appId = Environment.GetEnvironmentVariable("WXAppID");
+            string appSecret = Environment.GetEnvironmentVariable("WXAppSecretKey");
+            //string code = "USER_LOGIN_CODE"; // Replace with the actual user login code
+
+            using (var httpClient = new HttpClient())
+            {
+                string requestUrl = $"https://api.weixin.qq.com/sns/jscode2session" +
+                                    $"?appid={appId}&secret={appSecret}&js_code={code}&grant_type=authorization_code";
+
+                return await httpClient.GetAsync(requestUrl);
+
+                //if (response.IsSuccessStatusCode)
+                //{
+                //    string responseBody = await response.Content.ReadAsStringAsync();
+                //    // Parse the JSON response to get OpenID and other data
+                //    Console.WriteLine(responseBody);
+                //    return responseBody;
+                //}
+                //else
+                //{
+                //    Console.WriteLine($"Error: {response.StatusCode} - {response.ReasonPhrase}");
+                //    //要写日志
+                //    return "";
+                //}
+
+               
+            }
         }
 
 

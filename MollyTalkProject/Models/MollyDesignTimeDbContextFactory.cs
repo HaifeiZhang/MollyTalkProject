@@ -4,6 +4,7 @@ using MollyTalkProject.Models.Entities;
 
 namespace MollyTalkProject.Models
 {
+    //用于数据库迁移
     public class MollyDesignTimeDbContextFactory : IDesignTimeDbContextFactory<IdDbContext>
     {
 

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Identity.Client;
 using Microsoft.IdentityModel.Tokens;
 using MollyTalkProject.Controllers.RequestModels;
+using MollyTalkProject.FileHelper;
 using MollyTalkProject.Models;
 using MollyTalkProject.Models.Entities;
 using Newtonsoft.Json;
@@ -19,15 +20,15 @@ namespace MollyTalkProject.Controllers.ChatRobot
     public class ChatRobotController : ControllerBase
     {
         private readonly UserManager<User> userManager;
-        private readonly MollyDesignTimeDbContextFactory dbContextFactory;
+        private readonly MollyDBContext dBContext;
 
-        public ChatRobotController(UserManager<User> userManager, MollyDesignTimeDbContextFactory dbContextFactory)
+        public ChatRobotController(UserManager<User> userManager, MollyDBContext dBContext)
         {
             this.userManager = userManager;
-            this.dbContextFactory = dbContextFactory;
+            this.dBContext = dBContext;
         }
 
-        [HttpGet]
+        [HttpPost]
         public async Task<string> ChatRobotReponse(UserMsg userMsg)
         {
             if (userMsg == null|| string.IsNullOrEmpty(userMsg.Msg))
@@ -83,21 +84,30 @@ namespace MollyTalkProject.Controllers.ChatRobot
         private async void SaveApiResponseToFile(string prompt, string responseContent)
         {
             long userId = long.Parse(this.User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            ChatMessage chatMessage = new ChatMessage() 
+            ChatMessage chatMessage = new ChatMessage()
             {
                 QuestionMsg = prompt,
                 AnswerMsg = responseContent,
                 CreateTime = DateTime.Now,
-                UserId =userId
+                UserId = userId
             };
-
-            //dbContextFactory.ChatMessages.Add(chatMessage);
-            //dbContextFactory.SaveChanges();
+            WriteToTxtHelper.DataToTxt(chatMessage);
         }
 
-        private void SaveApiResponseToDB(string propmt, string responseContent)
+        private async void SaveApiResponseToDB(string prompt, string responseContent)
         {
-            throw new NotImplementedException();
+            long userId = long.Parse(this.User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            ChatMessage chatMessage = new ChatMessage()
+            {
+                QuestionMsg = prompt,
+                AnswerMsg = responseContent,
+                CreateTime = DateTime.Now,
+                UserId = userId
+            };
+
+            dBContext.ChatMessages.Add(chatMessage);
+            await dBContext.SaveChangesAsync();
+
         }
     }
 }

@@ -12,8 +12,8 @@ using MollyTalkProject.Models;
 namespace MollyTalkProject.Migrations
 {
     [DbContext(typeof(IdDbContext))]
-    [Migration("20230817113024_updateChatMessage")]
-    partial class updateChatMessage
+    [Migration("20230817185211_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -247,10 +247,6 @@ namespace MollyTalkProject.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
-                    b.Property<string>("OpenID")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("PasswordHash")
                         .HasColumnType("nvarchar(max)");
 
@@ -267,7 +263,9 @@ namespace MollyTalkProject.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("UserName")
+                        .IsRequired()
                         .HasMaxLength(256)
+                        .IsUnicode(true)
                         .HasColumnType("nvarchar(256)");
 
                     b.HasKey("Id");
