@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33815.320
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MollyTalkProject", "MollyTalkProject\MollyTalkProject.csproj", "{E3180E3D-CE2D-4F8F-8A1A-9E732438D395}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E3180E3D-CE2D-4F8F-8A1A-9E732438D395}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E3180E3D-CE2D-4F8F-8A1A-9E732438D395}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E3180E3D-CE2D-4F8F-8A1A-9E732438D395}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E3180E3D-CE2D-4F8F-8A1A-9E732438D395}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {66824B1D-2595-46A9-94DA-5933A4BC29F7}
+	EndGlobalSection
+EndGlobal
