@@ -23,12 +23,14 @@ namespace MollyTalkProject.Controllers.Login
         private readonly UserManager<User> userManager;
         private readonly RoleManager<Role> roleManager;
         public readonly MollyDBContext dBContext;
+        private readonly ILogger<LoginController> logger;
 
-        public LoginController(UserManager<User> userManager, RoleManager<Role> roleManager, MollyDBContext dBContext)
+        public LoginController(UserManager<User> userManager, RoleManager<Role> roleManager, MollyDBContext dBContext, ILogger<LoginController> logger)
         {
             this.userManager = userManager;
             this.roleManager = roleManager;
             this.dBContext = dBContext;
+            this.logger = logger;
         }
 
 
@@ -44,6 +46,7 @@ namespace MollyTalkProject.Controllers.Login
             var response = await GetOpenIDByWXCodeAsync(code);
             if (!response.IsSuccessStatusCode)
             {
+                logger.LogError($"通过{code}获取OpendID 失败");
                 return Problem("网络错误！");
             }
             string responseBody = await response.Content.ReadAsStringAsync();
@@ -193,7 +196,7 @@ namespace MollyTalkProject.Controllers.Login
             {
                 return BadRequest("Failed");
             }
-            User user = await userManager.FindByEmailAsync(request.LoginInfo);
+            User user = await userManager.FindByEmailAsync(request.EmailInfo);
             if (user == null)
             {
                 return NotFound($"用户名不存在");
@@ -212,8 +215,17 @@ namespace MollyTalkProject.Controllers.Login
             var success = await userManager.CheckPasswordAsync(user, pwd);
             if (!success)
             {
+                if (user.AccessFailedCount==3)
+                {
+                    user.LockoutEnabled = true;
+                    user.LockoutEnd = DateTime.UtcNow.AddMinutes(10);
+                }
+                user.AccessFailedCount++;   
                 return null ;
             }
+            //解除锁定
+            user.AccessFailedCount = 0;
+            user.LockoutEnabled = false;
             var claims = new List<Claim>();
             claims.Add(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
             claims.Add(new Claim(ClaimTypes.Name, user.UserName));
@@ -224,5 +236,7 @@ namespace MollyTalkProject.Controllers.Login
             }
             return BuildToken(claims);
         }
+
+        
     }
 }

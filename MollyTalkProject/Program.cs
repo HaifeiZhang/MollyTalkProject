@@ -36,7 +36,12 @@ builder.Services.AddSwaggerGen(c =>
     requirement[scheme] = new List<string>();
     c.AddSecurityRequirement(requirement);
 });
-builder.Services.AddDbContext<MollyDBContext>(opt => { }, ServiceLifetime.Scoped);
+//builder.Services.AddDbContext<MollyDBContext>(opt =>
+//{
+//    string connStr = Environment.GetEnvironmentVariable("MollySqlServerConnStr");
+//    opt.UseSqlServer(connStr);
+//},ServiceLifetime.Scoped);
+builder.Services.AddScoped<MollyDBContext>();
 builder.Services.AddDbContext<IdDbContext>(opt => {
     string connStr = Environment.GetEnvironmentVariable("MollySqlServerConnStr");
     opt.UseSqlServer(connStr);

@@ -29,9 +29,9 @@ namespace MollyTalkProject.Controllers.ChatRobot
         }
 
         [HttpPost]
-        public async Task<string> ChatRobotReponse(UserMsg userMsg)
+        public async Task<string> ChatRobotReponse(PromptMsg promptMsg)
         {
-            if (userMsg == null|| string.IsNullOrEmpty(userMsg.Msg))
+            if (promptMsg == null|| string.IsNullOrEmpty(promptMsg.Prompt))
             {
                 return "Hello, do you have a question? Let's Chat!";
             }
@@ -41,7 +41,7 @@ namespace MollyTalkProject.Controllers.ChatRobot
             {
                 return "Sorry, I'm not ready.";
             }
-            string prompt = userMsg.Msg;
+            string prompt = promptMsg.Prompt;
             string apiUrl = "https://api.openai.com/v1/engines/davinci-codex/completions";
 
             var requestBody = new
