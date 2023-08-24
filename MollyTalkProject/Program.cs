@@ -6,6 +6,7 @@ using Microsoft.OpenApi.Models;
 using MollyTalkProject.Controllers.SetModels;
 using MollyTalkProject.Models;
 using MollyTalkProject.Models.Entities;
+using NLog.Web;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -36,6 +37,9 @@ builder.Services.AddSwaggerGen(c =>
     requirement[scheme] = new List<string>();
     c.AddSecurityRequirement(requirement);
 });
+builder.Logging.ClearProviders();
+builder.Host.UseNLog();
+
 //builder.Services.AddDbContext<MollyDBContext>(opt =>
 //{
 //    string connStr = Environment.GetEnvironmentVariable("MollySqlServerConnStr");
